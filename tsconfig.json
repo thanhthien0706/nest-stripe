@@ -16,6 +16,19 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "rootDir": "./",
+    "paths": {
+      "@exceptions/*": ["./src/common/exceptions/*"],
+      "@environments": ["./src/common/environments"],
+      "@constants/*": ["./src/common/constants/*"],
+      "@roles/*": ["./src/common/roles/*"],
+      "@enums/*": ["./src/common/enums/*"],
+      "@decorators/*": ["./src/common/decorators/*"],
+      "@guards/*": ["./src/common/guards/*"],
+      "@common/*": ["./src/common/common/*"],
+      "@message/*": ["./src/common/common/*"],
+      "@/*": ["./src/*"]
+    }
   }
 }
