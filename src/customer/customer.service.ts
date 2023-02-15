@@ -6,6 +6,7 @@ import { UserEntity } from '@/common/database/entities/user.entity';
 import { FindOptionsWhere } from 'typeorm';
 import { NotFoundException } from '@exceptions/not-found.exception';
 import { MessageName } from '@/common/message';
+import { BankLocalEntity } from '@/common/database/entities/bankLocal.entity';
 
 @Injectable()
 export class CustomerService {
@@ -33,5 +34,39 @@ export class CustomerService {
       throw new ConflictException(`User with id ${userId} not found`);
 
     return customer;
+  }
+
+  async getCustomerById(id: number) {
+    const customer = await this.customerRepository.findOneById(id);
+
+    if (!customer) throw new NotFoundException(MessageName.USER);
+
+    return customer;
+  }
+
+  async addLocalBank(localBank: string, { id }: UserEntity) {
+    const customer = await this.getCustomeByUserId(id);
+
+    const updated = Object.assign(customer, {
+      localBank: localBank,
+    });
+
+    return await this.customerRepository.save(updated);
+  }
+
+  async plusBalance(amount: number, customer: CustomerEntity) {
+    const updated = Object.assign(customer, {
+      balance: customer.balance + amount,
+    });
+
+    return await this.customerRepository.save(updated);
+  }
+
+  async minusBalance(amount: number, customer: CustomerEntity) {
+    const updated = Object.assign(customer, {
+      balance: customer.balance - amount,
+    });
+
+    return await this.customerRepository.save(updated);
   }
 }

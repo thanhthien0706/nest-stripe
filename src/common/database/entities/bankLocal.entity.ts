@@ -6,6 +6,6 @@ export class BankLocalEntity extends BaseEntity {
   @Column()
   accountBank: string;
 
-  @Column()
+  @Column({ nullable: true })
   nameBank: string;
 }

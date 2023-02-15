@@ -43,7 +43,6 @@ export class CustomerEntity extends BaseEntity {
   @OneToMany(() => TransferEntity, (transaction) => transaction.fromCus)
   tstTransferfrom: TransferEntity[];
 
-  @OneToOne(() => BankLocalEntity, { nullable: true })
-  @JoinColumn()
-  localBank: BankLocalEntity;
+  @Column()
+  localBank: string;
 }

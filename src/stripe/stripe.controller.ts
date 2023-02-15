@@ -17,6 +17,8 @@ import { ReponseService } from '@/base/reponse.service';
 import { DepositDto } from './dto/deposti.dto';
 import { AccessTokenGuard } from '@guards/access-token.guard';
 import { UserEntity } from '@/common/database/entities/user.entity';
+import { Transfer } from './dto/transfer.dto';
+import { WithdrawDto } from './dto/withdraw.dto';
 
 @Controller('stripe')
 @UseGuards(AccessTokenGuard)
@@ -25,21 +27,6 @@ export class StripeController {
     private readonly stripeService: StripeService,
     private readonly reponseService: ReponseService,
   ) {}
-
-  // @Post('create-customer')
-  // async createCustomer(@Body() body: { customerInfo: Customer }) {
-  //   try {
-  //     const customer = await this.stripeService.createCustomer(
-  //       body.customerInfo,
-  //     );
-
-  //     const card = await this.stripeService.addCardToCustomer(customer.id);
-
-  //     return card;
-  //   } catch (error) {
-  //     return error;
-  //   }
-  // }
 
   @Post('deposit')
   async deposit(
@@ -69,19 +56,56 @@ export class StripeController {
   }
 
   @Post('withdraw')
-  async withdraw(@Body() body: { withdraw: WithdrawModel }) {
+  async withdraw(
+    @Body() createWithdraw: WithdrawDto,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
     try {
-      return await this.stripeService.withdraw(body.withdraw);
+      const data = await this.stripeService.withdraw(
+        createWithdraw,
+        req.user as UserEntity,
+      );
+
+      return res
+        .status(HttpStatus.OK)
+        .json(
+          this.reponseService.customResponeHttp(
+            true,
+            'withdraw successful',
+            data,
+            req.url,
+          ),
+        );
     } catch (error) {
-      return error;
+      throw new HttpException(error.message, error.status);
     }
   }
 
   @Post('transfer')
-  async transfer() {
+  async transfer(
+    @Body() createTransfer: Transfer,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
     try {
+      const data = await this.stripeService.transfer(
+        createTransfer,
+        req.user as UserEntity,
+      );
+
+      return res
+        .status(HttpStatus.OK)
+        .json(
+          this.reponseService.customResponeHttp(
+            true,
+            'Transfer successful',
+            data,
+            req.url,
+          ),
+        );
     } catch (error) {
-      return error;
+      throw new HttpException(error.message, error.status);
     }
   }
 

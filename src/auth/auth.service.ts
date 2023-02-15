@@ -33,14 +33,12 @@ export class AuthService {
     const userExists = await this.usersService.checkExistByEmail(
       createUserDto.email,
     );
-
     if (userExists) throw new ExistsException(MessageName.USER);
 
     const newUser = await this.usersService.createUser({
       ...createUserDto,
       password: this.hashData(createUserDto.password),
     });
-
     if (!newUser) throw new ConflictException(`Not Create User`);
 
     // Create Customer Stripe
@@ -49,7 +47,6 @@ export class AuthService {
       email: newUser.email,
       description: 'Create customer strip',
     });
-
     if (!stripeCustomer)
       throw new ConflictException('Stripe customer not created!');
 
@@ -63,20 +60,16 @@ export class AuthService {
       token: stripeCustomer.id,
     } as CreateCustomerDto);
 
-    // Create Token
-    const tokens = this.getTokens(newUser.id, newUser.username);
-
     const [resultCustomer, resultTokens] = await Promise.all([
       customer,
-      tokens,
+      this.getTokens(newUser.id, newUser.username),
     ]);
 
     if (!resultCustomer) throw new ConflictException('Not create customer');
 
-    delete resultCustomer.user;
-
     await this.updateRefreshToken(newUser.id, resultTokens.refreshToken);
 
+    delete resultCustomer.user;
     return {
       token: resultTokens,
       user: newUser,

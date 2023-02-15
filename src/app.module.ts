@@ -7,6 +7,8 @@ import { AuthModule } from './auth/auth.module';
 import { BaseModule } from './base/base.module';
 import { CustomerModule } from './customer/customer.module';
 import { CardsModule } from './cards/cards.module';
+import { LocalBankModule } from './local-bank/local-bank.module';
+import { AccountBankModule } from './account-bank/account-bank.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { CardsModule } from './cards/cards.module';
     BaseModule,
     CustomerModule,
     CardsModule,
+    LocalBankModule,
+    AccountBankModule,
   ],
   controllers: [],
   providers: [],

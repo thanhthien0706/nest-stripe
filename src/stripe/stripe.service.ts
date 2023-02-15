@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import {
+  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
@@ -17,6 +18,9 @@ import { DepositDto } from './dto/deposti.dto';
 import { CustomerService } from '@/customer/customer.service';
 import { UserEntity } from '@/common/database/entities/user.entity';
 import { CardsService } from '@/cards/cards.service';
+import { Transfer } from './dto/transfer.dto';
+import { WithdrawDto } from './dto/withdraw.dto';
+import { AccountBankService } from '@/account-bank/account-bank.service';
 
 @Injectable()
 export class StripeService {
@@ -27,6 +31,7 @@ export class StripeService {
     private readonly customerService: CustomerService,
     @Inject(forwardRef(() => CardsService))
     private readonly cardService: CardsService,
+    private readonly accountBankService: AccountBankService,
   ) {
     this.stripe = new Stripe(configService.get('STRIPE_SECRET_KEY'), {
       apiVersion: '2022-11-15',
@@ -74,7 +79,9 @@ export class StripeService {
 
     const card = await this.cardService.getCardByIdCustomer(customer.id);
 
-    const deposit = await this.stripe.charges.create({
+    const plusBalance = this.customerService.plusBalance(amount, customer);
+
+    const deposit = this.stripe.charges.create({
       amount,
       currency,
       customer: customer.token,
@@ -82,25 +89,72 @@ export class StripeService {
       description,
     });
 
-    if (!deposit) throw new ConflictException('');
+    const [rsPlusBalance, rsDeposit] = await Promise.all([
+      plusBalance,
+      deposit,
+    ]);
+
+    if (!rsPlusBalance) throw new ConflictException('');
+    if (!rsDeposit) throw new ConflictException('');
+
     return deposit;
   }
 
-  async withdraw({
-    amount,
-    currency = 'vnd',
-    destination,
-    source_type = 'card',
-  }: WithdrawModel) {
-    const withdraw = await this.stripe.transfers.create({
+  async withdraw({ amount }: WithdrawDto, { id }: UserEntity) {
+    const adminAccount = await this.accountBankService.getAccountBank(
+      '121212adadad',
+    );
+
+    const customer = await this.customerService.getCustomeByUserId(id);
+
+    const userAccount = await this.accountBankService.getAccountBank(
+      customer.localBank,
+    );
+
+    const [rsAdminAccount, rsUserAccount] = await Promise.all([
+      adminAccount,
+      userAccount,
+    ]);
+
+    if (rsAdminAccount.balance < amount) {
+      throw new BadRequestException('Admin not enough money!');
+    }
+
+    await Promise.all([
+      this.accountBankService.minusBalance(amount, rsAdminAccount),
+      this.accountBankService.plusBalance(amount, rsUserAccount),
+    ]);
+
+    return {
+      from: rsAdminAccount.accountNumber,
+      to: rsUserAccount.accountNumber,
       amount,
-      currency,
-      destination,
-      source_type,
-    });
+    };
+  }
 
-    if (!withdraw) throw new ConflictException();
+  async transfer({ amount, description, to }: Transfer, { id }: UserEntity) {
+    const customerFrom = this.customerService.getCustomeByUserId(id);
+    const customerTo = this.customerService.getCustomerById(to);
 
-    return withdraw;
+    const [rsCustomerFrom, rsCustomerTo] = await Promise.all([
+      customerFrom,
+      customerTo,
+    ]);
+
+    if (rsCustomerFrom.balance < amount) {
+      throw new BadRequestException('You not enough money!');
+    }
+
+    await Promise.all([
+      this.customerService.minusBalance(amount, rsCustomerFrom),
+      this.customerService.plusBalance(amount, rsCustomerTo),
+    ]);
+
+    return {
+      from: rsCustomerFrom.token,
+      to: rsCustomerTo.token,
+      amount,
+      description,
+    };
   }
 }
