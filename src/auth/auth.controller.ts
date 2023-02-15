@@ -5,6 +5,7 @@ import {
   HttpException,
   HttpStatus,
   Post,
+  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -16,7 +17,7 @@ import { User } from '@decorators/user.decorator';
 import { UserEntity } from '@/common/database/entities/user.entity';
 import { AuthDto } from './dto/auth.dto';
 import { CreateUserDto } from '@/users/dto/create-user.dto';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { ReponseService } from '@/base/reponse.service';
 
 @ApiBearerAuth()
@@ -27,11 +28,14 @@ export class AuthController {
     private authService: AuthService,
     private readonly reponseService: ReponseService,
   ) {}
-
   @Post('signup')
-  signup(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
+  async signup(
+    @Body() createUserDto: CreateUserDto,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
     try {
-      const data = this.authService.signUp(createUserDto);
+      const data = await this.authService.signUp(createUserDto);
 
       return res
         .status(HttpStatus.OK)
@@ -40,6 +44,7 @@ export class AuthController {
             true,
             'Signup Successful',
             data,
+            req.url,
           ),
         );
     } catch (error) {
@@ -48,7 +53,11 @@ export class AuthController {
   }
 
   @Post('signin')
-  async signin(@Body() inforSignin: AuthDto, @Res() res: Response) {
+  async signin(
+    @Body() inforSignin: AuthDto,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
     try {
       const data = await this.authService.signIn(inforSignin);
 
@@ -59,6 +68,7 @@ export class AuthController {
             true,
             'Signin Successful',
             data,
+            req.url,
           ),
         );
     } catch (error) {

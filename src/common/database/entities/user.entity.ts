@@ -18,8 +18,4 @@ export class UserEntity extends BaseEntity {
 
   @Column({ nullable: true })
   refreshToken: string;
-
-  comparePassword(password: string) {
-    return bcrypt.compareSync(password, this.password);
-  }
 }

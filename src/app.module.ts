@@ -5,6 +5,8 @@ import { MysqlModule } from './common/database';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { BaseModule } from './base/base.module';
+import { CustomerModule } from './customer/customer.module';
+import { CardsModule } from './cards/cards.module';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { BaseModule } from './base/base.module';
     UsersModule,
     AuthModule,
     BaseModule,
+    CustomerModule,
+    CardsModule,
   ],
   controllers: [],
   providers: [],

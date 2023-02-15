@@ -27,11 +27,7 @@ export class UsersService extends BaseService<
   }
 
   async createUser(userCreate: CreateUserDto): Promise<UserEntity> {
-    const user = await this.userRepository.save(userCreate);
-
-    if (!user) throw new ConflictException(`Not Create User`);
-
-    return user;
+    return await this.userRepository.save(userCreate);
   }
 
   async findByEmail(email: string): Promise<UserEntity> {
