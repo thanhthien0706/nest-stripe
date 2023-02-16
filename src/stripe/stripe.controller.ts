@@ -9,9 +9,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { StripeService } from './stripe.service';
-import { Customer } from './model/customer.interface';
-import { Deposit } from './model/deposit.interface';
-import { WithdrawModel } from './model/withdraw.interface';
 import { Request, Response } from 'express';
 import { ReponseService } from '@/base/reponse.service';
 import { DepositDto } from './dto/deposti.dto';

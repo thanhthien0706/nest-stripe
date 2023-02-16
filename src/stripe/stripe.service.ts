@@ -7,12 +7,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import Stripe from 'stripe';
-import { Customer } from './model/customer.interface';
-import { async } from 'rxjs';
-import { Deposit } from './model/deposit.interface';
-import { WithdrawModel } from './model/withdraw.interface';
 import { CreateStripeCustomerDto } from './dto/create-stripe-customer.dto';
-import { CreateCardDto } from '@/cards/dto/create-card.dto';
 import { CreateCardStripeDto } from './dto/create-card-stripe.dto';
 import { DepositDto } from './dto/deposti.dto';
 import { CustomerService } from '@/customer/customer.service';
@@ -76,9 +71,8 @@ export class StripeService {
     { id }: UserEntity,
   ) {
     const customer = await this.customerService.getCustomeByUserId(id);
-
     const card = await this.cardService.getCardByIdCustomer(customer.id);
-
+    
     const plusBalance = this.customerService.plusBalance(amount, customer);
 
     const deposit = this.stripe.charges.create({
